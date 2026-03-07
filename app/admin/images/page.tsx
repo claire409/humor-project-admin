@@ -6,8 +6,8 @@ import { useRouter } from 'next/navigation';
 
 export default function ImagesPage() {
   const [images, setImages] = useState<any[]>([]);
-  const [inputText, setInputText] = useState(''); // Current typing
-  const [finalSearch, setFinalSearch] = useState(''); // Only updates on button click
+  const [inputText, setInputText] = useState('');
+  const [finalSearch, setFinalSearch] = useState('');
   const [hasMounted, setHasMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -40,7 +40,6 @@ export default function ImagesPage() {
     setLoading(false);
   }
 
-  // --- Search Actions ---
   const handleSearch = () => {
     setFinalSearch(inputText);
   };
@@ -50,7 +49,6 @@ export default function ImagesPage() {
     setFinalSearch('');
   };
 
-  // Filter logic: searches URL, Description, and Profile ID
   const filteredImages = images.filter((img) => {
     const search = finalSearch.toLowerCase();
     return (
@@ -101,14 +99,12 @@ export default function ImagesPage() {
 
   return (
     <div className="space-y-8 p-4">
-      {/* Header & Search Bar Row */}
       <div className="flex flex-col md:flex-row justify-between items-end gap-4">
         <div>
           <h2 className="text-3xl font-black uppercase tracking-tighter text-slate-900">Images</h2>
         </div>
 
         <div className="flex items-center gap-2 w-full md:w-auto">
-          {/* Search Input Container */}
           <div className="relative w-full md:w-80">
             <input
               type="text"
@@ -121,24 +117,15 @@ export default function ImagesPage() {
             <span className="absolute left-4 top-4 opacity-30 text-lg">🔍</span>
           </div>
 
-          <button
-            onClick={handleSearch}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-black uppercase px-6 py-4 rounded-2xl transition-all shadow-md active:scale-95"
-          >
+          <button onClick={handleSearch} className="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-black uppercase px-6 py-4 rounded-2xl transition-all shadow-md active:scale-95">
             Search
           </button>
 
-          <button
-            onClick={handleClear}
-            className="bg-slate-200 hover:bg-slate-300 text-slate-600 text-[10px] font-black uppercase px-6 py-4 rounded-2xl transition-all active:scale-95"
-          >
+          <button onClick={handleClear} className="bg-slate-200 hover:bg-slate-300 text-slate-600 text-[10px] font-black uppercase px-6 py-4 rounded-2xl transition-all active:scale-95">
             Clear
           </button>
 
-          <button
-            onClick={() => router.push('/admin/images/upload')}
-            className="bg-slate-900 hover:bg-black text-white px-6 py-4 rounded-2xl font-black uppercase text-[10px] shadow-md transition-all active:scale-95 ml-2"
-          >
+          <button onClick={() => router.push('/admin/images/upload')} className="bg-slate-900 hover:bg-black text-white px-6 py-4 rounded-2xl font-black uppercase text-[10px] shadow-md transition-all active:scale-95 ml-2">
             + Add
           </button>
         </div>
@@ -155,7 +142,7 @@ export default function ImagesPage() {
               <div className="p-8">
                 {editingId === img.id ? (
                   /* --- EDIT MODE --- */
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-1">
                         <label className="text-[9px] font-black uppercase text-blue-600">Edit Image URL</label>
@@ -166,15 +153,38 @@ export default function ImagesPage() {
                         <input className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none" value={editForm.image_description} onChange={e => setEditForm({...editForm, image_description: e.target.value})} />
                       </div>
                     </div>
-                    <div className="flex gap-4 pt-2">
-                      <button onClick={() => handleSaveUpdate(img.id)} className="bg-blue-600 text-white px-6 py-3 rounded-xl text-[10px] font-black uppercase shadow-md active:scale-95 transition-all">Save</button>
+
+                    {/* Checkboxes in Edit Mode */}
+                    <div className="flex gap-6 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                      <label className="flex items-center gap-3 cursor-pointer group">
+                        <input
+                          type="checkbox"
+                          className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                          checked={editForm.is_common_use}
+                          onChange={(e) => setEditForm({...editForm, is_common_use: e.target.checked})}
+                        />
+                        <span className="text-[10px] font-black uppercase text-slate-600 group-hover:text-blue-600 transition-colors">Common Use</span>
+                      </label>
+
+                      <label className="flex items-center gap-3 cursor-pointer group">
+                        <input
+                          type="checkbox"
+                          className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                          checked={editForm.is_public}
+                          onChange={(e) => setEditForm({...editForm, is_public: e.target.checked})}
+                        />
+                        <span className="text-[10px] font-black uppercase text-slate-600 group-hover:text-blue-600 transition-colors">Publicly Visible</span>
+                      </label>
+                    </div>
+
+                    <div className="flex gap-4 pt-2 border-t border-slate-100">
+                      <button onClick={() => handleSaveUpdate(img.id)} className="bg-blue-600 text-white px-6 py-3 rounded-xl text-[10px] font-black uppercase shadow-md active:scale-95 transition-all">Save Changes</button>
                       <button onClick={() => setEditingId(null)} className="text-slate-400 px-6 py-3 text-[10px] font-black uppercase hover:text-slate-600 transition-all">Cancel</button>
                     </div>
                   </div>
                 ) : (
                   /* --- READ MODE --- */
                   <div className="flex flex-col lg:flex-row gap-8">
-                    {/* Thumbnail */}
                     <div className="shrink-0 space-y-3">
                       <div className="relative">
                         <img src={img.url} className="w-40 h-40 object-cover rounded-3xl bg-slate-100 border shadow-inner" alt="" />
@@ -185,7 +195,6 @@ export default function ImagesPage() {
                       </div>
                     </div>
 
-                    {/* Metadata Grid */}
                     <div className="flex-1 grid grid-cols-1 gap-y-6">
                       <div className="space-y-4">
                         <div>
@@ -216,7 +225,6 @@ export default function ImagesPage() {
                       </div>
                     </div>
 
-                    {/* Row Actions */}
                     <div className="flex lg:flex-col gap-2 justify-end">
                       <button onClick={() => startEditing(img)} className="bg-slate-100 hover:bg-slate-200 text-slate-600 px-6 py-3 rounded-xl text-[10px] font-black uppercase transition-all active:scale-95">Edit</button>
                       <button onClick={() => { if(confirm("Delete Image Asset?")) supabase.from('images').delete().eq('id', img.id).then(() => fetchImages()) }} className="bg-red-50 hover:bg-red-100 text-red-600 px-6 py-3 rounded-xl text-[10px] font-black uppercase transition-all active:scale-95">Delete</button>
