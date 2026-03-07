@@ -5,8 +5,8 @@ import { createBrowserClient } from '@supabase/ssr';
 
 export default function UsersPage() {
   const [profiles, setProfiles] = useState<any[]>([]);
-  const [inputText, setInputText] = useState(''); // What the user is typing
-  const [finalSearch, setFinalSearch] = useState(''); // What we are actually filtering by
+  const [inputText, setInputText] = useState('');
+  const [finalSearch, setFinalSearch] = useState('');
   const [loading, setLoading] = useState(true);
 
   const supabase = createBrowserClient(
@@ -16,6 +16,7 @@ export default function UsersPage() {
 
   useEffect(() => {
     async function fetchProfiles() {
+      setLoading(true);
       const { data } = await supabase.from('profiles').select('*');
       if (data) setProfiles(data);
       setLoading(false);
@@ -32,7 +33,6 @@ export default function UsersPage() {
     setFinalSearch('');
   };
 
-  // Filter logic: Now uses finalSearch instead of inputText
   const filteredProfiles = profiles.filter((p) => {
     const fullName = `${p.first_name || ''} ${p.last_name || ''}`.toLowerCase();
     const search = finalSearch.toLowerCase();
@@ -44,11 +44,10 @@ export default function UsersPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-4">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <h2 className="text-3xl font-black uppercase tracking-tighter">User Registry</h2>
+        <h2 className="text-3xl font-black uppercase tracking-tighter text-slate-900">Users</h2>
 
-        {/* Search Controls */}
         <div className="flex items-center gap-2">
           <div className="relative w-64">
             <input
@@ -78,7 +77,6 @@ export default function UsersPage() {
         </div>
       </div>
 
-      {/* ... Table code remains the same as previous step ... */}
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
         <table className="w-full text-left text-sm">
           <thead className="bg-slate-50 text-[10px] font-black uppercase text-slate-400 border-b border-slate-200">
@@ -91,20 +89,25 @@ export default function UsersPage() {
           </thead>
           <tbody className="divide-y divide-slate-100">
             {loading ? (
-              <tr><td colSpan={4} className="p-10 text-center text-slate-400 font-bold uppercase text-xs">Loading users...</td></tr>
+              <tr>
+                <td colSpan={4} className="p-20 text-center font-black uppercase text-slate-300 animate-pulse text-xs tracking-widest">
+                  Loading Logs...
+                </td>
+              </tr>
             ) : filteredProfiles.length > 0 ? (
               filteredProfiles.map((p) => {
-                const hasName = p.first_name || p.last_name;
-                const displayName = hasName
-                  ? `${p.first_name ?? ''} ${p.last_name ?? ''}`.trim()
-                  : "Unnamed";
+                const fullName = `${p.first_name ?? ''} ${p.last_name ?? ''}`.trim();
+                const hasName = fullName.length > 0;
+                const hasEmail = p.email && p.email.trim().length > 0;
 
                 return (
                   <tr key={p.id} className="hover:bg-slate-50 transition-colors">
-                    <td className={`p-4 font-bold ${!hasName ? 'text-slate-400 italic font-normal' : 'text-slate-900'}`}>
-                      {displayName}
+                    <td className={`p-4 font-bold ${!hasName ? 'text-slate-300 italic font-normal' : 'text-slate-900'}`}>
+                      {hasName ? fullName : "N/A"}
                     </td>
-                    <td className="p-4 text-slate-500 font-mono text-xs">{p.email}</td>
+                    <td className={`p-4 font-mono text-xs ${!hasEmail ? 'text-slate-300 italic' : 'text-slate-500'}`}>
+                      {hasEmail ? p.email : "N/A"}
+                    </td>
                     <td className="p-4 text-slate-400 font-mono text-[10px]">{p.id}</td>
                     <td className="p-4">
                       {p.is_superadmin ? (
@@ -117,7 +120,11 @@ export default function UsersPage() {
                 );
               })
             ) : (
-              <tr><td colSpan={4} className="p-10 text-center text-slate-400 uppercase text-xs font-bold italic">No matching results found</td></tr>
+              <tr>
+                <td colSpan={4} className="p-20 text-center text-slate-400 uppercase text-xs font-bold italic">
+                  No matching results found
+                </td>
+              </tr>
             )}
           </tbody>
         </table>

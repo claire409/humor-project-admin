@@ -58,7 +58,7 @@ export default function CaptionsPage() {
       {/* Header & Search Bar with Buttons */}
       <div className="flex flex-col md:flex-row justify-between items-end gap-4">
         <div>
-          <h2 className="text-3xl font-black uppercase tracking-tighter text-slate-900">Caption Audit</h2>
+          <h2 className="text-3xl font-black uppercase tracking-tighter text-slate-900">Captions</h2>
         </div>
 
         <div className="flex items-center gap-2 w-full md:w-auto">

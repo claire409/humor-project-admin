@@ -40,7 +40,7 @@ export default async function Home() {
       </form>
 
       <p className="mt-12 text-[9px] text-slate-600 font-bold uppercase tracking-[0.4em]">
-        Authorized Personnel Only
+        Only Authorized Personnel (Super Admin) Allowed
       </p>
     </div>
   );
