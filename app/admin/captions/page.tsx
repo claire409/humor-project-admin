@@ -66,7 +66,7 @@ export default function CaptionsPage() {
             <input
               type="text"
               value={inputText}
-              placeholder="Search content, profile, or image ID..."
+              placeholder="Search caption text, profile ID, or image ID..."
               className="w-full p-4 pl-12 border border-slate-200 rounded-2xl text-xs focus:ring-4 focus:ring-blue-50 outline-none transition-all"
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}

@@ -53,7 +53,7 @@ export default function UsersPage() {
             <input
               type="text"
               value={inputText}
-              placeholder="Search name, email, or ID..."
+              placeholder="Search name, email, or profile ID..."
               className="w-full p-3 pl-10 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}

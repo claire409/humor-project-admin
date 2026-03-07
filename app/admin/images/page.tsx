@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 
 export default function ImagesPage() {
   const [images, setImages] = useState<any[]>([]);
+  const [inputText, setInputText] = useState(''); // Current typing
+  const [finalSearch, setFinalSearch] = useState(''); // Only updates on button click
   const [hasMounted, setHasMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -37,6 +39,27 @@ export default function ImagesPage() {
     if (data) setImages(data);
     setLoading(false);
   }
+
+  // --- Search Actions ---
+  const handleSearch = () => {
+    setFinalSearch(inputText);
+  };
+
+  const handleClear = () => {
+    setInputText('');
+    setFinalSearch('');
+  };
+
+  // Filter logic: searches URL, Description, and Profile ID
+  const filteredImages = images.filter((img) => {
+    const search = finalSearch.toLowerCase();
+    return (
+      img.url?.toLowerCase().includes(search) ||
+      img.image_description?.toLowerCase().includes(search) ||
+      img.profile_id?.toLowerCase().includes(search) ||
+      img.user_id?.toLowerCase().includes(search)
+    );
+  });
 
   const formatDateTime = (dateStr: string | null) => {
     if (!dateStr) return '—';
@@ -78,23 +101,56 @@ export default function ImagesPage() {
 
   return (
     <div className="space-y-8 p-4">
-      <div className="flex justify-between items-end">
+      {/* Header & Search Bar Row */}
+      <div className="flex flex-col md:flex-row justify-between items-end gap-4">
         <div>
           <h2 className="text-3xl font-black uppercase tracking-tighter text-slate-900">Images</h2>
         </div>
-        <button onClick={() => router.push('/admin/images/upload')} className="bg-blue-600 text-white px-6 py-3 rounded-xl font-black uppercase text-xs hover:shadow-lg transition-all">
-          + Add Image
-        </button>
+
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          {/* Search Input Container */}
+          <div className="relative w-full md:w-80">
+            <input
+              type="text"
+              value={inputText}
+              placeholder="Search URL, image description, or profile ID..."
+              className="w-full p-4 pl-12 border border-slate-200 rounded-2xl text-xs focus:ring-4 focus:ring-blue-50 outline-none transition-all"
+              onChange={(e) => setInputText(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+            />
+            <span className="absolute left-4 top-4 opacity-30 text-lg">🔍</span>
+          </div>
+
+          <button
+            onClick={handleSearch}
+            className="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-black uppercase px-6 py-4 rounded-2xl transition-all shadow-md active:scale-95"
+          >
+            Search
+          </button>
+
+          <button
+            onClick={handleClear}
+            className="bg-slate-200 hover:bg-slate-300 text-slate-600 text-[10px] font-black uppercase px-6 py-4 rounded-2xl transition-all active:scale-95"
+          >
+            Clear
+          </button>
+
+          <button
+            onClick={() => router.push('/admin/images/upload')}
+            className="bg-slate-900 hover:bg-black text-white px-6 py-4 rounded-2xl font-black uppercase text-[10px] shadow-md transition-all active:scale-95 ml-2"
+          >
+            + Add
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6">
         {loading ? (
-          /* --- PULSATING LOADING STATE --- */
           <div className="p-20 text-center font-black uppercase text-slate-300 animate-pulse tracking-widest">
             Loading Logs...
           </div>
-        ) : images.length > 0 ? (
-          images.map((img) => (
+        ) : filteredImages.length > 0 ? (
+          filteredImages.map((img) => (
             <div key={img.id} className={`bg-white rounded-[2rem] border transition-all ${editingId === img.id ? 'border-blue-500 ring-8 ring-blue-50' : 'border-slate-200 shadow-sm'}`}>
               <div className="p-8">
                 {editingId === img.id ? (
