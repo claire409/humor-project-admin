@@ -60,6 +60,86 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               Captions
             </Link>
           </li>
+
+          {/* Humor System */}
+          <li className="mt-4 text-[10px] text-slate-500 tracking-[0.25em] px-3">
+            HUMOR SYSTEM
+          </li>
+          <li>
+            <Link href="/admin/humor-flavors" className="block p-4 hover:bg-slate-800 hover:text-white rounded-xl transition-all">
+              Humor Flavors
+            </Link>
+          </li>
+          <li>
+            <Link href="/admin/humor-flavor-steps" className="block p-4 hover:bg-slate-800 hover:text-white rounded-xl transition-all">
+              Flavor Steps
+            </Link>
+          </li>
+          <li>
+            <Link href="/admin/humor-mix" className="block p-4 hover:bg-slate-800 hover:text-white rounded-xl transition-all">
+              Humor Mix
+            </Link>
+          </li>
+          <li>
+            <Link href="/admin/terms" className="block p-4 hover:bg-slate-800 hover:text-white rounded-xl transition-all">
+              Terms
+            </Link>
+          </li>
+
+          {/* Captions & Requests */}
+          <li className="mt-4 text-[10px] text-slate-500 tracking-[0.25em] px-3">
+            CAPTIONS
+          </li>
+          <li>
+            <Link href="/admin/caption-requests" className="block p-4 hover:bg-slate-800 hover:text-white rounded-xl transition-all">
+              Caption Requests
+            </Link>
+          </li>
+          <li>
+            <Link href="/admin/caption-examples" className="block p-4 hover:bg-slate-800 hover:text-white rounded-xl transition-all">
+              Caption Examples
+            </Link>
+          </li>
+
+          {/* LLM System */}
+          <li className="mt-4 text-[10px] text-slate-500 tracking-[0.25em] px-3">
+            LLM SYSTEM
+          </li>
+          <li>
+            <Link href="/admin/llm-providers" className="block p-4 hover:bg-slate-800 hover:text-white rounded-xl transition-all">
+              LLM Providers
+            </Link>
+          </li>
+          <li>
+            <Link href="/admin/llm-models" className="block p-4 hover:bg-slate-800 hover:text-white rounded-xl transition-all">
+              LLM Models
+            </Link>
+          </li>
+          <li>
+            <Link href="/admin/llm-prompt-chains" className="block p-4 hover:bg-slate-800 hover:text-white rounded-xl transition-all">
+              Prompt Chains
+            </Link>
+          </li>
+          <li>
+            <Link href="/admin/llm-responses" className="block p-4 hover:bg-slate-800 hover:text-white rounded-xl transition-all">
+              LLM Responses
+            </Link>
+          </li>
+
+          {/* Access Control */}
+          <li className="mt-4 text-[10px] text-slate-500 tracking-[0.25em] px-3">
+            ACCESS CONTROL
+          </li>
+          <li>
+            <Link href="/admin/allowed-signup-domains" className="block p-4 hover:bg-slate-800 hover:text-white rounded-xl transition-all">
+              Allowed Domains
+            </Link>
+          </li>
+          <li>
+            <Link href="/admin/whitelisted-emails" className="block p-4 hover:bg-slate-800 hover:text-white rounded-xl transition-all">
+              Whitelisted Emails
+            </Link>
+          </li>
         </ul>
 
         {/* The Client Component is safe to use here */}
