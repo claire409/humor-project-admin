@@ -56,7 +56,7 @@ export default function HumorMixPage() {
     delete (payload as any).id;
 
     const { error } = await supabase
-      .from('humor_mix')
+      .from('humor_flavor_mix')
       .update(payload)
       .eq('id', id);
 

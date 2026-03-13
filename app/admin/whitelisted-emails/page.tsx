@@ -66,7 +66,7 @@ export default function WhitelistedEmailsPage() {
     delete (payload as any).id;
 
     const { error } = await supabase
-      .from('whitelisted_email_addresses')
+      .from('whitelist_email_addresses')
       .update(payload)
       .eq('id', id);
     if (error) {
@@ -86,7 +86,7 @@ export default function WhitelistedEmailsPage() {
     delete (payload as any).id;
 
     const { error } = await supabase
-      .from('whitelisted_email_addresses')
+      .from('whitelist_email_addresses')
       .insert([payload]);
     if (error) {
       setError(error.message);
@@ -102,7 +102,7 @@ export default function WhitelistedEmailsPage() {
     setSaving(true);
     setError(null);
     const { error } = await supabase
-      .from('whitelisted_email_addresses')
+      .from('whitelist_email_addresses')
       .delete()
       .eq('id', id);
     if (error) {
