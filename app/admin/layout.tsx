@@ -25,8 +25,26 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   if (!profile?.is_superadmin) {
     return (
-      <div className="h-screen flex items-center justify-center bg-red-50 text-red-600 font-bold uppercase tracking-widest">
-        Access Denied: Superadmins Only
+      <div className="h-screen flex items-center justify-center bg-red-50">
+        <div className="bg-white border border-red-100 rounded-3xl px-10 py-12 shadow-xl text-center space-y-6">
+          <p className="text-red-600 font-black uppercase tracking-[0.35em] text-[11px]">
+            Access Denied
+          </p>
+          <p className="text-slate-800 text-lg font-black uppercase tracking-tight">
+            Superadmins Only
+          </p>
+          <p className="text-[11px] text-slate-500 font-bold uppercase tracking-[0.25em]">
+            Try signing in with a different Google account.
+          </p>
+          <div className="pt-2">
+            <Link
+              href="/login"
+              className="inline-flex items-center justify-center px-8 py-3 rounded-2xl bg-slate-900 text-white text-[10px] font-black uppercase tracking-[0.25em] hover:bg-black transition-all active:scale-95"
+            >
+              Back to Login
+            </Link>
+          </div>
+        </div>
       </div>
     );
   }
