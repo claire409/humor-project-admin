@@ -12,6 +12,8 @@ export default function AllowedSignupDomainsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editBuffer, setEditBuffer] = useState<AnyRow>({});
   const [newRow, setNewRow] = useState<AnyRow>({});
+  const [inputText, setInputText] = useState('');
+  const [finalSearch, setFinalSearch] = useState('');
   const [saving, setSaving] = useState(false);
 
   const supabase = createBrowserClient(
@@ -140,6 +142,23 @@ export default function AllowedSignupDomainsPage() {
     setSaving(false);
   }
 
+  const handleSearch = () => {
+    setFinalSearch(inputText);
+  };
+
+  const handleClear = () => {
+    setInputText('');
+    setFinalSearch('');
+  };
+
+  const filteredRows = rows.filter((row) => {
+    const search = finalSearch.trim().toLowerCase();
+    if (!search) return true;
+    return effectiveColumns.some((col) =>
+      String(row[col] ?? '').toLowerCase().includes(search)
+    );
+  });
+
   return (
     <div className="space-y-8 p-4">
       <div className="flex flex-col md:flex-row justify-between items-end gap-4">
@@ -150,6 +169,33 @@ export default function AllowedSignupDomainsPage() {
           <p className="text-[11px] text-slate-500 font-bold uppercase tracking-[0.25em] mt-2">
             Manage which e-mail domains are allowed to sign up
           </p>
+        </div>
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          <div className="relative w-full md:w-80">
+            <input
+              type="text"
+              value={inputText}
+              placeholder="Search allowed domains..."
+              className="w-full p-4 pl-12 border border-slate-200 rounded-2xl text-xs focus:ring-4 focus:ring-blue-50 outline-none transition-all"
+              onChange={(e) => setInputText(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+            />
+            <span className="absolute left-4 top-4 opacity-30 text-lg">🔍</span>
+          </div>
+
+          <button
+            onClick={handleSearch}
+            className="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-black uppercase px-6 py-4 rounded-2xl transition-all shadow-md active:scale-95"
+          >
+            Search
+          </button>
+
+          <button
+            onClick={handleClear}
+            className="bg-slate-200 hover:bg-slate-300 text-slate-600 text-[10px] font-black uppercase px-6 py-4 rounded-2xl transition-all active:scale-95"
+          >
+            Clear
+          </button>
         </div>
       </div>
 
@@ -189,9 +235,9 @@ export default function AllowedSignupDomainsPage() {
           <div className="p-8 text-center text-sm text-red-600 font-mono">
             {error}
           </div>
-        ) : rows.length === 0 ? (
+        ) : filteredRows.length === 0 ? (
           <div className="p-16 text-center text-xs font-black uppercase tracking-[0.35em] text-slate-300">
-            No allowed signup domains found
+            No matching allowed signup domains found
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -207,7 +253,7 @@ export default function AllowedSignupDomainsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {rows.map((row) => {
+                {filteredRows.map((row) => {
                   const isEditing = editingId === row.id;
                   const current = isEditing ? editBuffer : row;
 
