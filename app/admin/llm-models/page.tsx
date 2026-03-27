@@ -66,7 +66,9 @@ export default function LlmModelsPage() {
     }, new Set<string>())
   );
 
-  const effectiveColumns = columns.length ? columns : ['id', 'provider_id', 'name'];
+  const effectiveColumns = columns.length
+    ? columns
+    : ['id', 'provider_id', 'name', 'provider_model_id'];
 
   function startEdit(row: AnyRow) {
     setEditingId(row.id);
@@ -102,6 +104,7 @@ export default function LlmModelsPage() {
     setError(null);
 
     const name = String(newRow.name ?? '').trim();
+    const provider_model_id = String(newRow.provider_model_id ?? '').trim();
     const llm_provider_id_raw = newRow.llm_provider_id;
     const is_temperature_supported_raw = newRow.is_temperature_supported;
 
@@ -123,8 +126,16 @@ export default function LlmModelsPage() {
           ? false
           : null;
 
-    if (!name || llm_provider_id === null || Number.isNaN(llm_provider_id) || is_temperature_supported === null) {
-      setError('Please enter name, llm_provider_id, and is_temperature_supported.');
+    if (
+      !name ||
+      !provider_model_id ||
+      llm_provider_id === null ||
+      Number.isNaN(llm_provider_id) ||
+      is_temperature_supported === null
+    ) {
+      setError(
+        'Please enter name, provider model id, provider, and temperature supported.'
+      );
       setSaving(false);
       return;
     }
@@ -144,13 +155,10 @@ export default function LlmModelsPage() {
 
     const payload: AnyRow = {
       name,
+      provider_model_id,
       [llmProviderKey]: llm_provider_id,
       [tempSupportedKey]: is_temperature_supported,
     };
-    if (columns.includes('provider_model_id')) {
-      // Keep provider model ID auto-filled from model name on create.
-      payload.provider_model_id = name;
-    }
 
     const {
       data: { user },
@@ -266,6 +274,20 @@ export default function LlmModelsPage() {
               className="w-full border border-slate-200 rounded-xl px-3 py-2 text-[11px]"
               value={newRow.name ?? ''}
               onChange={(e) => setNewRow((prev: AnyRow) => ({ ...prev, name: e.target.value }))}
+            />
+          </div>
+
+          <div className="space-y-1 md:col-span-3">
+            <label className="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em]">
+              Provider model ID
+            </label>
+            <input
+              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-mono"
+              placeholder="e.g. gpt-4o-mini"
+              value={newRow.provider_model_id ?? ''}
+              onChange={(e) =>
+                setNewRow((prev: AnyRow) => ({ ...prev, provider_model_id: e.target.value }))
+              }
             />
           </div>
 
