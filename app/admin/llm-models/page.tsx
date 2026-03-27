@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 
 type AnyRow = { [key: string]: any };
+type ProviderOption = { id: number; name: string };
 
 export default function LlmModelsPage() {
   const [rows, setRows] = useState<AnyRow[]>([]);
@@ -12,6 +13,7 @@ export default function LlmModelsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editBuffer, setEditBuffer] = useState<AnyRow>({});
   const [newRow, setNewRow] = useState<AnyRow>({});
+  const [providers, setProviders] = useState<ProviderOption[]>([]);
   const [saving, setSaving] = useState(false);
 
   const supabase = createBrowserClient(
@@ -21,6 +23,7 @@ export default function LlmModelsPage() {
 
   useEffect(() => {
     fetchRows();
+    fetchProviders();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -38,6 +41,20 @@ export default function LlmModelsPage() {
       setRows(data);
     }
     setLoading(false);
+  }
+
+  async function fetchProviders() {
+    const { data, error } = await supabase
+      .from('llm_providers')
+      .select('id,name')
+      .order('id', { ascending: true });
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    setProviders((data as ProviderOption[]) ?? []);
   }
 
   const columns = Array.from(
@@ -204,17 +221,22 @@ export default function LlmModelsPage() {
 
           <div className="space-y-1">
             <label className="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em]">
-              LLM Provider ID
+              LLM Provider
             </label>
-            <input
-              type="number"
-              step={1}
-              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-[11px]"
+            <select
+              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-[11px] bg-white"
               value={newRow.llm_provider_id ?? ''}
               onChange={(e) =>
                 setNewRow((prev: AnyRow) => ({ ...prev, llm_provider_id: e.target.value }))
               }
-            />
+            >
+              <option value="">Select provider...</option>
+              {providers.map((provider) => (
+                <option key={provider.id} value={provider.id}>
+                  {provider.name} (ID: {provider.id})
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="space-y-1">
