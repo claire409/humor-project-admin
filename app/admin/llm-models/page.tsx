@@ -147,6 +147,10 @@ export default function LlmModelsPage() {
       [llmProviderKey]: llm_provider_id,
       [tempSupportedKey]: is_temperature_supported,
     };
+    if (columns.includes('provider_model_id')) {
+      // Keep provider model ID auto-filled from model name on create.
+      payload.provider_model_id = name;
+    }
 
     const {
       data: { user },
@@ -279,7 +283,7 @@ export default function LlmModelsPage() {
               <option value="">Select provider...</option>
               {providers.map((provider) => (
                 <option key={provider.id} value={provider.id}>
-                  {provider.name} (ID: {provider.id})
+                  {provider.name}
                 </option>
               ))}
             </select>

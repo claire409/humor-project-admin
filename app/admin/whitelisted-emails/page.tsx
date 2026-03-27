@@ -49,7 +49,8 @@ export default function WhitelistedEmailsPage() {
     }, new Set<string>())
   );
 
-  const effectiveColumns = columns.length ? columns : ['id', 'email'];
+  const effectiveColumns = columns.length ? columns : ['id', 'email_address'];
+  const emailColumn = columns.includes('email_address') ? 'email_address' : 'email';
 
   function startEdit(row: AnyRow) {
     setEditingId(row.id);
@@ -84,7 +85,7 @@ export default function WhitelistedEmailsPage() {
     setSaving(true);
     setError(null);
 
-    const email = String(newRow.email ?? '').trim();
+    const email = String(newRow[emailColumn] ?? '').trim();
     if (!email) {
       setError('Please enter an email address.');
       setSaving(false);
@@ -92,7 +93,7 @@ export default function WhitelistedEmailsPage() {
     }
 
     // Only allow user-provided fields; the database will auto-fill the rest.
-    const payload: AnyRow = { email };
+    const payload: AnyRow = { [emailColumn]: email };
 
     const {
       data: { user },
@@ -208,8 +209,10 @@ export default function WhitelistedEmailsPage() {
             </label>
             <input
               className="w-full border border-slate-200 rounded-xl px-3 py-2 text-[11px]"
-              value={newRow.email ?? ''}
-              onChange={(e) => setNewRow((prev: AnyRow) => ({ ...prev, email: e.target.value }))}
+              value={newRow[emailColumn] ?? ''}
+              onChange={(e) =>
+                setNewRow((prev: AnyRow) => ({ ...prev, [emailColumn]: e.target.value }))
+              }
             />
           </div>
         </div>
