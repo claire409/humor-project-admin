@@ -82,8 +82,69 @@ export default function LlmModelsPage() {
     setSaving(true);
     setError(null);
 
-    const payload = { ...newRow };
-    delete (payload as any).id;
+    const name = String(newRow.name ?? '').trim();
+    const llm_provider_id_raw = newRow.llm_provider_id;
+    const is_temperature_supported_raw = newRow.is_temperature_supported;
+
+    const llm_provider_id =
+      llm_provider_id_raw === '' || llm_provider_id_raw === undefined || llm_provider_id_raw === null
+        ? null
+        : Number(llm_provider_id_raw);
+
+    const is_temperature_supported =
+      is_temperature_supported_raw === true ||
+      is_temperature_supported_raw === 'true' ||
+      is_temperature_supported_raw === 1 ||
+      is_temperature_supported_raw === '1'
+        ? true
+        : is_temperature_supported_raw === false ||
+          is_temperature_supported_raw === 'false' ||
+          is_temperature_supported_raw === 0 ||
+          is_temperature_supported_raw === '0'
+          ? false
+          : null;
+
+    if (!name || llm_provider_id === null || Number.isNaN(llm_provider_id) || is_temperature_supported === null) {
+      setError('Please enter name, llm_provider_id, and is_temperature_supported.');
+      setSaving(false);
+      return;
+    }
+
+    // Only allow user-provided fields; the database will auto-fill the rest.
+    // (Some schemas may name the foreign key `llm_provider_id` or just `provider_id`.)
+    const llmProviderKey = columns.includes('llm_provider_id')
+      ? 'llm_provider_id'
+      : columns.includes('provider_id')
+        ? 'provider_id'
+        : 'llm_provider_id';
+    const tempSupportedKey = columns.includes('is_temperature_supported')
+      ? 'is_temperature_supported'
+      : columns.includes('temperature_supported')
+        ? 'temperature_supported'
+        : 'is_temperature_supported';
+
+    const payload: AnyRow = {
+      name,
+      [llmProviderKey]: llm_provider_id,
+      [tempSupportedKey]: is_temperature_supported,
+    };
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+    if (userError || !user) {
+      setError('Not authenticated.');
+      setSaving(false);
+      return;
+    }
+
+    const nowIso = new Date().toISOString();
+    // Auto-fill common metadata fields when they exist.
+    if (columns.includes('created_by')) payload.created_by = user.id;
+    if (columns.includes('updated_by')) payload.updated_by = user.id;
+    if (columns.includes('created_at')) payload.created_at = nowIso;
+    if (columns.includes('updated_at')) payload.updated_at = nowIso;
 
     const { error } = await supabase
       .from('llm_models')
@@ -132,23 +193,44 @@ export default function LlmModelsPage() {
           Create New LLM Model
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {effectiveColumns.map((col) => (
-            <div key={col} className="space-y-1">
-              <label className="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em]">
-                {col}
-              </label>
-              <input
-                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-[11px]"
-                value={newRow[col] ?? ''}
-                onChange={(e) =>
-                  setNewRow((prev: AnyRow) => ({
-                    ...prev,
-                    [col]: e.target.value,
-                  }))
-                }
-              />
-            </div>
-          ))}
+          <div className="space-y-1 md:col-span-3">
+            <label className="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em]">Name</label>
+            <input
+              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-[11px]"
+              value={newRow.name ?? ''}
+              onChange={(e) => setNewRow((prev: AnyRow) => ({ ...prev, name: e.target.value }))}
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em]">
+              LLM Provider ID
+            </label>
+            <input
+              type="number"
+              step={1}
+              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-[11px]"
+              value={newRow.llm_provider_id ?? ''}
+              onChange={(e) =>
+                setNewRow((prev: AnyRow) => ({ ...prev, llm_provider_id: e.target.value }))
+              }
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em]">
+              Temperature Supported
+            </label>
+            <select
+              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-[11px] bg-white"
+              value={newRow.is_temperature_supported ?? ''}
+              onChange={(e) => setNewRow((prev: AnyRow) => ({ ...prev, is_temperature_supported: e.target.value }))}
+            >
+              <option value="">Select...</option>
+              <option value="true">Yes</option>
+              <option value="false">No</option>
+            </select>
+          </div>
         </div>
         <button
           disabled={saving}

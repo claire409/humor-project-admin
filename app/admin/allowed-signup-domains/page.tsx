@@ -82,8 +82,35 @@ export default function AllowedSignupDomainsPage() {
     setSaving(true);
     setError(null);
 
-    const payload = { ...newRow };
-    delete (payload as any).id;
+    const apex_domain = String(newRow.apex_domain ?? '').trim();
+    if (!apex_domain) {
+      setError('Please enter an apex domain (e.g. example.com).');
+      setSaving(false);
+      return;
+    }
+
+    // Only allow user-provided fields; the database will auto-fill the rest.
+    // (Some schemas may name the column `apex_domain` or `domain`; we adapt to what exists.)
+    const payload: AnyRow = columns.includes('apex_domain')
+      ? { apex_domain }
+      : { domain: apex_domain };
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+    if (userError || !user) {
+      setError('Not authenticated.');
+      setSaving(false);
+      return;
+    }
+
+    const nowIso = new Date().toISOString();
+    // Auto-fill common metadata fields when they exist.
+    if (columns.includes('created_by')) payload.created_by = user.id;
+    if (columns.includes('updated_by')) payload.updated_by = user.id;
+    if (columns.includes('created_at')) payload.created_at = nowIso;
+    if (columns.includes('updated_at')) payload.updated_at = nowIso;
 
     const { error } = await supabase
       .from('allowed_signup_domains')
@@ -132,23 +159,16 @@ export default function AllowedSignupDomainsPage() {
           Add Allowed Domain
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {effectiveColumns.map((col) => (
-            <div key={col} className="space-y-1">
-              <label className="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em]">
-                {col}
-              </label>
-              <input
-                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-[11px]"
-                value={newRow[col] ?? ''}
-                onChange={(e) =>
-                  setNewRow((prev: AnyRow) => ({
-                    ...prev,
-                    [col]: e.target.value,
-                  }))
-                }
-              />
-            </div>
-          ))}
+          <div className="space-y-1 md:col-span-3">
+            <label className="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em]">
+              Apex Domain
+            </label>
+            <input
+              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-[11px]"
+              value={newRow.apex_domain ?? ''}
+              onChange={(e) => setNewRow((prev: AnyRow) => ({ ...prev, apex_domain: e.target.value }))}
+            />
+          </div>
         </div>
         <button
           disabled={saving}

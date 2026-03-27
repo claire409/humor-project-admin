@@ -77,8 +77,52 @@ export default function TermsPage() {
     setSaving(true);
     setError(null);
 
-    const payload = { ...newRow };
-    delete (payload as any).id;
+    const term = String(newRow.term ?? '').trim();
+    const definition = String(newRow.definition ?? '').trim();
+    const example = String(newRow.example ?? '').trim();
+    const priorityRaw = newRow.priority;
+    const termTypeIdRaw = newRow.term_type_id;
+
+    const priority =
+      priorityRaw === '' || priorityRaw === undefined || priorityRaw === null
+        ? null
+        : Number(priorityRaw);
+    const term_type_id =
+      termTypeIdRaw === '' || termTypeIdRaw === undefined || termTypeIdRaw === null
+        ? null
+        : Number(termTypeIdRaw);
+
+    if (!term || !definition || !example || priority === null || Number.isNaN(priority) || term_type_id === null || Number.isNaN(term_type_id)) {
+      setError('Please fill in term, definition, example, priority, and term type.');
+      setSaving(false);
+      return;
+    }
+
+    // Only allow user-provided fields; the database will auto-fill the rest.
+    const payload: AnyRow = {
+      term,
+      definition,
+      example,
+      priority,
+      term_type_id,
+    };
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+    if (userError || !user) {
+      setError('Not authenticated.');
+      setSaving(false);
+      return;
+    }
+
+    const nowIso = new Date().toISOString();
+    // Auto-fill common metadata fields when they exist.
+    if (columns.includes('created_by')) payload.created_by = user.id;
+    if (columns.includes('updated_by')) payload.updated_by = user.id;
+    if (columns.includes('created_at')) payload.created_at = nowIso;
+    if (columns.includes('updated_at')) payload.updated_at = nowIso;
 
     const { error } = await supabase.from('terms').insert([payload]);
     if (error) {
@@ -124,23 +168,61 @@ export default function TermsPage() {
           Create New Term
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {effectiveColumns.map((col) => (
-            <div key={col} className="space-y-1">
-              <label className="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em]">
-                {col}
-              </label>
-              <input
-                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-[11px]"
-                value={newRow[col] ?? ''}
-                onChange={(e) =>
-                  setNewRow((prev: AnyRow) => ({
-                    ...prev,
-                    [col]: e.target.value,
-                  }))
-                }
-              />
-            </div>
-          ))}
+          <div className="space-y-1">
+            <label className="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em]">Term</label>
+            <input
+              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-[11px]"
+              value={newRow.term ?? ''}
+              onChange={(e) => setNewRow((prev: AnyRow) => ({ ...prev, term: e.target.value }))}
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em]">Priority</label>
+            <input
+              type="number"
+              step={1}
+              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-[11px]"
+              value={newRow.priority ?? ''}
+              onChange={(e) => setNewRow((prev: AnyRow) => ({ ...prev, priority: e.target.value }))}
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em]">Term Type</label>
+            <select
+              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-[11px] bg-white"
+              value={newRow.term_type_id ?? ''}
+              onChange={(e) => setNewRow((prev: AnyRow) => ({ ...prev, term_type_id: e.target.value }))}
+            >
+              <option value="">Select type...</option>
+              <option value="2">Verb</option>
+              <option value="3">Adjective</option>
+              <option value="4">Phrase</option>
+              <option value="6">Noun</option>
+              <option value="7">Interjection</option>
+            </select>
+          </div>
+
+          <div className="space-y-1 md:col-span-3">
+            <label className="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em]">Definition</label>
+            <textarea
+              rows={3}
+              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-[11px] bg-white"
+              value={newRow.definition ?? ''}
+              onChange={(e) => setNewRow((prev: AnyRow) => ({ ...prev, definition: e.target.value }))}
+            />
+          </div>
+
+          <div className="space-y-1 md:col-span-3">
+            <label className="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em]">Example</label>
+            <textarea
+              rows={3}
+              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-[11px] bg-white"
+              value={newRow.example ?? ''}
+              onChange={(e) => setNewRow((prev: AnyRow) => ({ ...prev, example: e.target.value }))}
+            />
+          </div>
         </div>
         <button
           disabled={saving}
