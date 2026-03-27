@@ -57,8 +57,8 @@ export default function UploadImagePage() {
           <label className="text-[10px] font-black uppercase text-slate-400 block mb-2">Image Source URL</label>
           <input
             type="url" required
-            placeholder="https://example.com/meme.png"
-            className="w-full p-4 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+            placeholder="e.g. https://example.com/meme.png"
+            className="w-full p-4 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none placeholder:text-slate-400"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
           />
@@ -68,8 +68,8 @@ export default function UploadImagePage() {
         <div>
           <label className="text-[10px] font-black uppercase text-slate-400 block mb-2">Image Description (Alt Text)</label>
           <textarea
-            placeholder="Describe the meme content..."
-            className="w-full p-4 border border-slate-200 rounded-xl text-sm h-24 focus:ring-2 focus:ring-blue-500 outline-none"
+            placeholder="e.g. Describe the meme content, scene, and any text in the image"
+            className="w-full p-4 border border-slate-200 rounded-xl text-sm h-24 focus:ring-2 focus:ring-blue-500 outline-none placeholder:text-slate-400"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />

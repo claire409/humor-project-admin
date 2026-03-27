@@ -271,7 +271,8 @@ export default function LlmModelsPage() {
           <div className="space-y-1 md:col-span-3">
             <label className="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em]">Name</label>
             <input
-              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-[11px]"
+              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-[11px] placeholder:text-slate-400"
+              placeholder="e.g. GPT-4o Mini"
               value={newRow.name ?? ''}
               onChange={(e) => setNewRow((prev: AnyRow) => ({ ...prev, name: e.target.value }))}
             />
@@ -282,7 +283,7 @@ export default function LlmModelsPage() {
               Provider model ID
             </label>
             <input
-              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-mono"
+              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-mono placeholder:text-slate-400"
               placeholder="e.g. gpt-4o-mini"
               value={newRow.provider_model_id ?? ''}
               onChange={(e) =>

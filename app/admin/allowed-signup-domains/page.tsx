@@ -210,7 +210,8 @@ export default function AllowedSignupDomainsPage() {
               Apex Domain
             </label>
             <input
-              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-[11px]"
+              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-[11px] placeholder:text-slate-400"
+              placeholder="e.g. yourcompany.com"
               value={newRow.apex_domain ?? ''}
               onChange={(e) => setNewRow((prev: AnyRow) => ({ ...prev, apex_domain: e.target.value }))}
             />

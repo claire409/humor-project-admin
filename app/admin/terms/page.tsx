@@ -216,7 +216,8 @@ export default function TermsPage() {
           <div className="space-y-1">
             <label className="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em]">Term</label>
             <input
-              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-[11px]"
+              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-[11px] placeholder:text-slate-400"
+              placeholder="e.g. boast"
               value={newRow.term ?? ''}
               onChange={(e) => setNewRow((prev: AnyRow) => ({ ...prev, term: e.target.value }))}
             />
@@ -227,7 +228,8 @@ export default function TermsPage() {
             <input
               type="number"
               step={1}
-              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-[11px]"
+              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-[11px] placeholder:text-slate-400"
+              placeholder="e.g. 10"
               value={newRow.priority ?? ''}
               onChange={(e) => setNewRow((prev: AnyRow) => ({ ...prev, priority: e.target.value }))}
             />
@@ -253,7 +255,8 @@ export default function TermsPage() {
             <label className="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em]">Definition</label>
             <textarea
               rows={3}
-              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-[11px] bg-white"
+              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-[11px] bg-white placeholder:text-slate-400"
+              placeholder="e.g. To brag about something in an exaggerated way"
               value={newRow.definition ?? ''}
               onChange={(e) => setNewRow((prev: AnyRow) => ({ ...prev, definition: e.target.value }))}
             />
@@ -263,7 +266,8 @@ export default function TermsPage() {
             <label className="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em]">Example</label>
             <textarea
               rows={3}
-              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-[11px] bg-white"
+              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-[11px] bg-white placeholder:text-slate-400"
+              placeholder='e.g. "She boasted about her new car."'
               value={newRow.example ?? ''}
               onChange={(e) => setNewRow((prev: AnyRow) => ({ ...prev, example: e.target.value }))}
             />

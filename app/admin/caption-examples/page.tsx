@@ -221,7 +221,8 @@ export default function CaptionExamplesPage() {
               Image Description
             </label>
             <input
-              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-[11px]"
+              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-[11px] placeholder:text-slate-400"
+              placeholder="e.g. A dog wearing sunglasses at the beach"
               value={newRow.image_description ?? ''}
               onChange={(e) => setNewRow((prev: AnyRow) => ({ ...prev, image_description: e.target.value }))}
             />
@@ -234,7 +235,8 @@ export default function CaptionExamplesPage() {
             <input
               type="number"
               step={1}
-              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-[11px]"
+              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-[11px] placeholder:text-slate-400"
+              placeholder="e.g. 1"
               value={newRow.priority ?? ''}
               onChange={(e) => setNewRow((prev: AnyRow) => ({ ...prev, priority: e.target.value }))}
             />
@@ -243,7 +245,8 @@ export default function CaptionExamplesPage() {
           <div className="space-y-1 md:col-span-3">
             <label className="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em]">Caption</label>
             <input
-              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-[11px]"
+              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-[11px] placeholder:text-slate-400"
+              placeholder='e.g. "When Monday hits different"'
               value={newRow.caption ?? ''}
               onChange={(e) => setNewRow((prev: AnyRow) => ({ ...prev, caption: e.target.value }))}
             />
@@ -253,7 +256,8 @@ export default function CaptionExamplesPage() {
             <label className="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em]">Explanation</label>
             <textarea
               rows={3}
-              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-[11px] bg-white"
+              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-[11px] bg-white placeholder:text-slate-400"
+              placeholder="e.g. Short note on why this caption fits the image"
               value={newRow.explanation ?? ''}
               onChange={(e) => setNewRow((prev: AnyRow) => ({ ...prev, explanation: e.target.value }))}
             />

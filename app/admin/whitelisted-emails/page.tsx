@@ -208,7 +208,8 @@ export default function WhitelistedEmailsPage() {
               Email
             </label>
             <input
-              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-[11px]"
+              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-[11px] placeholder:text-slate-400"
+              placeholder="e.g. teammate@yourcompany.com"
               value={newRow[emailColumn] ?? ''}
               onChange={(e) =>
                 setNewRow((prev: AnyRow) => ({ ...prev, [emailColumn]: e.target.value }))
