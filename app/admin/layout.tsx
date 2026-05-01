@@ -109,6 +109,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             CAPTIONS
           </li>
           <li>
+            <Link href="/admin/caption-vote-stats" className="block p-4 hover:bg-slate-800 hover:text-white rounded-xl transition-all">
+              Caption Rating Stats
+            </Link>
+          </li>
+          <li>
             <Link href="/admin/caption-requests" className="block p-4 hover:bg-slate-800 hover:text-white rounded-xl transition-all">
               Caption Requests
             </Link>
@@ -143,12 +148,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               LLM Responses
             </Link>
           </li>
-          <li>
-            <Link href="/admin/caption-vote-stats" className="block p-4 hover:bg-slate-800 hover:text-white rounded-xl transition-all">
-              Caption Rating Stats
-            </Link>
-          </li>
-
           {/* Access Control */}
           <li className="mt-4 text-[10px] text-slate-500 tracking-[0.25em] px-3">
             ACCESS CONTROL

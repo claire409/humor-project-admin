@@ -6,13 +6,6 @@ import ClientVoteStats from './ClientVoteStats';
 
 type AnyRow = { [key: string]: any };
 
-function pickCreatedAtKey(rows: AnyRow[]): string | null {
-  if (!rows.length) return null;
-  const candidates = ['created_datetime_utc', 'created_at', 'createdAt', 'inserted_at'];
-  for (const k of candidates) if (k in rows[0]) return k;
-  return null;
-}
-
 function dayKey(d: Date) {
   const yyyy = d.getFullYear();
   const mm = String(d.getMonth() + 1).padStart(2, '0');
@@ -20,29 +13,7 @@ function dayKey(d: Date) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-function extractVoteNumeric(voteRow: AnyRow): number | null {
-  const candidates = ['vote', 'value', 'rating', 'score', 'vote_value'];
-  for (const k of candidates) {
-    if (k in voteRow) {
-      const n = Number(voteRow[k]);
-      if (!Number.isNaN(n)) return n;
-    }
-  }
-
-  if (typeof voteRow.is_upvote === 'boolean') return voteRow.is_upvote ? 1 : -1;
-  if (typeof voteRow.is_upvote === 'string') {
-    if (voteRow.is_upvote === 'true') return 1;
-    if (voteRow.is_upvote === 'false') return -1;
-  }
-
-  if (typeof voteRow.direction === 'string') {
-    const d = voteRow.direction.toLowerCase();
-    if (d === 'up' || d === 'upvote' || d === 'like') return 1;
-    if (d === 'down' || d === 'downvote' || d === 'dislike') return -1;
-  }
-
-  return null;
-}
+type CaptionAgg = { up: number; down: number; total: number; net: number };
 
 export default async function CaptionVoteStatsPage() {
   const cookieStore = await cookies();
@@ -52,55 +23,15 @@ export default async function CaptionVoteStatsPage() {
     { cookies: { getAll: () => cookieStore.getAll(), setAll: () => {} } }
   );
 
-  // Figure out which columns exist with a cheap probe.
-  const { data: probe, error: probeError } = await supabase
-    .from('caption_votes')
-    .select('*')
-    .limit(1);
+  // All-time scan (paged) with known schema columns.
+  const selectCols = 'created_datetime_utc,vote_value,profile_id,caption_id,is_from_study';
 
-  if (probeError) {
-    return (
-      <div className="p-8 text-center text-sm text-red-600 font-mono">
-        {probeError.message}
-      </div>
-    );
-  }
-
-  const probeRow = ((probe ?? [])[0] ?? null) as AnyRow | null;
-  const availableCols = probeRow ? Object.keys(probeRow) : [];
-
-  const createdAtKey = pickCreatedAtKey(probeRow ? [probeRow] : []);
-  const captionIdKey = availableCols.includes('caption_id') ? 'caption_id' : null;
-  const raterKey =
-    availableCols.includes('profile_id')
-      ? 'profile_id'
-      : availableCols.includes('user_id')
-        ? 'user_id'
-        : null;
-
-  const selectCols = Array.from(
-    new Set(
-      [
-        createdAtKey,
-        captionIdKey,
-        raterKey,
-        'vote',
-        'value',
-        'rating',
-        'score',
-        'vote_value',
-        'is_upvote',
-        'direction',
-      ].filter(Boolean) as string[]
-    )
-  );
-
-  const orderKey = createdAtKey ?? 'created_datetime_utc';
-  const perCaption = new Map<string, number>();
+  const perCaption = new Map<string, CaptionAgg>();
   const uniqueRaters = new Set<string>();
   const uniqueCaptions = new Set<string>();
-  let voteNumericSum = 0;
-  let voteNumericCount = 0;
+  let upvotes = 0;
+  let downvotes = 0;
+  let studyVotes = 0;
 
   // Only keep per-day buckets for last 30 days to keep memory bounded.
   const now = new Date();
@@ -115,8 +46,8 @@ export default async function CaptionVoteStatsPage() {
   while (true) {
     const { data: page, error: pageError } = await supabase
       .from('caption_votes')
-      .select(selectCols.join(','))
-      .order(orderKey, { ascending: true })
+      .select(selectCols)
+      .order('created_datetime_utc', { ascending: true })
       .range(offset, offset + pageSize - 1);
 
     if (pageError) {
@@ -131,24 +62,31 @@ export default async function CaptionVoteStatsPage() {
     if (!rows.length) break;
 
     for (const v of rows) {
-      if (captionIdKey && v[captionIdKey] !== null && v[captionIdKey] !== undefined && v[captionIdKey] !== '') {
-        const cid = String(v[captionIdKey]);
+      if (v.caption_id !== null && v.caption_id !== undefined && v.caption_id !== '') {
+        const cid = String(v.caption_id);
         uniqueCaptions.add(cid);
-        perCaption.set(cid, (perCaption.get(cid) ?? 0) + 1);
+        const agg = perCaption.get(cid) ?? { up: 0, down: 0, total: 0, net: 0 };
+        const vv = Number(v.vote_value);
+        if (vv === 1) {
+          agg.up += 1;
+          upvotes += 1;
+        } else if (vv === -1) {
+          agg.down += 1;
+          downvotes += 1;
+        }
+        agg.total += 1;
+        agg.net += vv === 1 ? 1 : vv === -1 ? -1 : 0;
+        perCaption.set(cid, agg);
       }
 
-      if (raterKey && v[raterKey] !== null && v[raterKey] !== undefined && v[raterKey] !== '') {
-        uniqueRaters.add(String(v[raterKey]));
+      if (v.profile_id !== null && v.profile_id !== undefined && v.profile_id !== '') {
+        uniqueRaters.add(String(v.profile_id));
       }
 
-      const voteN = extractVoteNumeric(v);
-      if (voteN !== null) {
-        voteNumericSum += voteN;
-        voteNumericCount += 1;
-      }
+      if (v.is_from_study === true) studyVotes += 1;
 
-      if (createdAtKey && v[createdAtKey]) {
-        const d = new Date(v[createdAtKey]);
+      if (v.created_datetime_utc) {
+        const d = new Date(v.created_datetime_utc);
         if (!Number.isNaN(d.getTime()) && d >= start30) {
           const k = dayKey(d);
           perDay30[k] = (perDay30[k] ?? 0) + 1;
@@ -179,24 +117,54 @@ export default async function CaptionVoteStatsPage() {
     return { day: k.slice(5), count: perDay30[k] ?? 0 };
   });
 
-  const topCaptionIds = Array.from(perCaption.entries())
-    .sort((a, b) => b[1] - a[1])
+  const minVotes = 15;
+  const byMostVotes = Array.from(perCaption.entries())
+    .sort((a, b) => b[1].total - a[1].total)
     .slice(0, 15)
-    .map(([captionId, count]) => ({ captionId, count }));
+    .map(([captionId, agg]) => ({ captionId, ...agg }));
+
+  const byBestNet = Array.from(perCaption.entries())
+    .filter(([, agg]) => agg.total >= minVotes)
+    .sort((a, b) => b[1].net - a[1].net)
+    .slice(0, 15)
+    .map(([captionId, agg]) => ({ captionId, ...agg }));
+
+  const byMostControversial = Array.from(perCaption.entries())
+    .filter(([, agg]) => agg.total >= minVotes)
+    .sort((a, b) => {
+      const aUpRate = a[1].up / a[1].total;
+      const bUpRate = b[1].up / b[1].total;
+      const aDelta = Math.abs(aUpRate - 0.5);
+      const bDelta = Math.abs(bUpRate - 0.5);
+      if (aDelta !== bDelta) return aDelta - bDelta; // closer to 50/50 first
+      return b[1].total - a[1].total; // break ties by volume
+    })
+    .slice(0, 15)
+    .map(([captionId, agg]) => ({ captionId, ...agg }));
 
   const captionsById: Record<string, { content?: string | null }> = {};
-  if (topCaptionIds.length) {
+  const captionIdsToHydrate = Array.from(
+    new Set([
+      ...byMostVotes.map((x) => x.captionId),
+      ...byBestNet.map((x) => x.captionId),
+      ...byMostControversial.map((x) => x.captionId),
+    ])
+  );
+
+  if (captionIdsToHydrate.length) {
     const { data: captionsData } = await supabase
       .from('captions')
       .select('id,content')
-      .in('id', topCaptionIds.map((x) => x.captionId));
+      .in('id', captionIdsToHydrate);
 
     for (const c of (captionsData ?? []) as AnyRow[]) {
       captionsById[String(c.id)] = { content: c.content ?? null };
     }
   }
 
-  const avgVote = voteNumericCount ? voteNumericSum / voteNumericCount : null;
+  const totalVotesAll = totalVotes ?? offset;
+  const upvoteRate = totalVotesAll ? upvotes / totalVotesAll : 0;
+  const studyRate = totalVotesAll ? studyVotes / totalVotesAll : 0;
 
   return (
     <div className="space-y-10 p-4">
@@ -211,16 +179,20 @@ export default async function CaptionVoteStatsPage() {
 
       <ClientVoteStats
         totals={{
-          totalVotes: totalVotes ?? offset,
+          totalVotes: totalVotesAll,
           uniqueRaters: uniqueRaters.size,
           captionsRated: uniqueCaptions.size,
-          avgVote,
+          upvotes,
+          downvotes,
+          upvoteRate,
+          studyVotes,
+          studyRate,
         }}
         dailySeries={dailySeries}
-        topCaptions={topCaptionIds.map((x) => ({
-          ...x,
-          content: captionsById[x.captionId]?.content ?? null,
-        }))}
+        mostVoted={byMostVotes.map((x) => ({ ...x, content: captionsById[x.captionId]?.content ?? null }))}
+        bestNet={byBestNet.map((x) => ({ ...x, content: captionsById[x.captionId]?.content ?? null }))}
+        mostControversial={byMostControversial.map((x) => ({ ...x, content: captionsById[x.captionId]?.content ?? null }))}
+        minVotesForRankings={minVotes}
         captionsById={captionsById}
       />
     </div>
