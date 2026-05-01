@@ -33,6 +33,24 @@ export default async function CaptionVoteStatsPage() {
   let downvotes = 0;
   let studyVotes = 0;
 
+  const { data: topCaptionScores, error: topScoresError } = await supabase
+    .from('caption_scores')
+    .select('id,display_text,total_votes')
+    .order('total_votes', { ascending: false })
+    .range(0, 14);
+
+  if (topScoresError) {
+    return (
+      <div className="p-8 text-center text-sm text-red-600 font-mono">
+        {topScoresError.message}
+      </div>
+    );
+  }
+
+  const { count: captionScoreRows } = await supabase
+    .from('caption_scores')
+    .select('*', { count: 'exact', head: true });
+
   // Only keep per-day buckets for last 30 days to keep memory bounded.
   const now = new Date();
   const start30 = new Date(now);
@@ -187,12 +205,18 @@ export default async function CaptionVoteStatsPage() {
           upvoteRate,
           studyVotes,
           studyRate,
+          captionScoreRows: captionScoreRows ?? null,
         }}
         dailySeries={dailySeries}
         mostVoted={byMostVotes.map((x) => ({ ...x, content: captionsById[x.captionId]?.content ?? null }))}
         bestNet={byBestNet.map((x) => ({ ...x, content: captionsById[x.captionId]?.content ?? null }))}
         mostControversial={byMostControversial.map((x) => ({ ...x, content: captionsById[x.captionId]?.content ?? null }))}
         minVotesForRankings={minVotes}
+        topCaptionScores={(topCaptionScores ?? []).map((r: AnyRow) => ({
+          id: String(r.id),
+          display_text: r.display_text ?? null,
+          total_votes: Number(r.total_votes ?? 0),
+        }))}
         captionsById={captionsById}
       />
     </div>

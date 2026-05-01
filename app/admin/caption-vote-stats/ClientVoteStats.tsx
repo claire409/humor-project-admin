@@ -13,6 +13,7 @@ import {
 type AnyRow = { [key: string]: any };
 
 type DailyPoint = { day: string; count: number };
+type CaptionScoreRow = { id: string; display_text: string | null; total_votes: number };
 type RankedCaption = {
   captionId: string;
   up: number;
@@ -40,12 +41,14 @@ export default function ClientVoteStats({
     upvoteRate: number;
     studyVotes: number;
     studyRate: number;
+    captionScoreRows: number | null;
   };
   dailySeries: DailyPoint[];
   mostVoted: RankedCaption[];
   bestNet: RankedCaption[];
   mostControversial: RankedCaption[];
   minVotesForRankings: number;
+  topCaptionScores: CaptionScoreRow[];
   captionsById: Record<string, { content?: string | null }>;
 }) {
   const hydrate = (items: RankedCaption[]) =>
@@ -181,6 +184,84 @@ export default function ClientVoteStats({
             ) : (
               hydratedMostVoted.map((item) => <Row key={item.captionId} item={item} />)
             )}
+          </div>
+        </div>
+      </section>
+
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200">
+          <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2">
+            Top captions by total_votes (caption_scores)
+          </h4>
+          <p className="text-[10px] font-mono text-slate-500 mb-6">
+            {totals.captionScoreRows === null
+              ? '(All-time; score rows unknown)'
+              : `(All-time; ${totals.captionScoreRows.toLocaleString()} score rows)`}
+          </p>
+          <div className="space-y-3">
+            {topCaptionScores.length === 0 ? (
+              <div className="text-xs font-black uppercase tracking-[0.25em] text-slate-300 py-10 text-center">
+                No data
+              </div>
+            ) : (
+              topCaptionScores.map((r) => (
+                <div
+                  key={r.id}
+                  className="flex items-start justify-between gap-4 p-4 rounded-2xl border border-slate-100 bg-slate-50"
+                >
+                  <div className="min-w-0">
+                    <div className="text-[9px] font-black uppercase tracking-[0.25em] text-slate-400">
+                      Caption
+                    </div>
+                    <div className="mt-1 text-[11px] font-bold text-slate-800">
+                      {r.display_text ? `“${r.display_text}”` : '—'}
+                    </div>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <div className="text-[9px] font-black uppercase tracking-[0.25em] text-slate-400">
+                      Total Votes
+                    </div>
+                    <div className="text-lg font-black text-slate-900">
+                      {r.total_votes.toLocaleString()}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200">
+          <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2">
+            Quick takeaways
+          </h4>
+          <div className="mt-6 space-y-3 text-[11px] text-slate-700">
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+              <div className="text-[9px] font-black uppercase tracking-[0.25em] text-slate-400 mb-2">
+                Engagement
+              </div>
+              <div className="font-bold">
+                {totals.uniqueRaters.toLocaleString()} raters cast {totals.totalVotes.toLocaleString()} votes across{' '}
+                {totals.captionsRated.toLocaleString()} captions.
+              </div>
+            </div>
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+              <div className="text-[9px] font-black uppercase tracking-[0.25em] text-slate-400 mb-2">
+                Sentiment
+              </div>
+              <div className="font-bold">
+                Upvote rate is {fmtPct(totals.upvoteRate)} ({totals.upvotes.toLocaleString()}↑ /{' '}
+                {totals.downvotes.toLocaleString()}↓).
+              </div>
+            </div>
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+              <div className="text-[9px] font-black uppercase tracking-[0.25em] text-slate-400 mb-2">
+                Study
+              </div>
+              <div className="font-bold">
+                {totals.studyVotes.toLocaleString()} votes are from study ({fmtPct(totals.studyRate)}).
+              </div>
+            </div>
           </div>
         </div>
       </section>
