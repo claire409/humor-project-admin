@@ -30,6 +30,7 @@ export default function ClientVoteStats({
   bestNet,
   mostControversial,
   minVotesForRankings,
+  topCaptionScores,
   captionsById,
 }: {
   totals: {
