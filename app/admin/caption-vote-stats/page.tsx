@@ -24,14 +24,11 @@ export default async function CaptionVoteStatsPage() {
   );
 
   // All-time scan (paged) with known schema columns.
-  const selectCols = 'created_datetime_utc,vote_value,profile_id,caption_id,is_from_study';
+  const selectCols = 'created_datetime_utc,vote_value,profile_id,caption_id';
 
   const perCaption = new Map<string, CaptionAgg>();
   const uniqueRaters = new Set<string>();
   const uniqueCaptions = new Set<string>();
-  let upvotes = 0;
-  let downvotes = 0;
-  let studyVotes = 0;
 
   const { data: topCaptionScores, error: topScoresError } = await supabase
     .from('caption_scores')
@@ -87,10 +84,8 @@ export default async function CaptionVoteStatsPage() {
         const vv = Number(v.vote_value);
         if (vv === 1) {
           agg.up += 1;
-          upvotes += 1;
         } else if (vv === -1) {
           agg.down += 1;
-          downvotes += 1;
         }
         agg.total += 1;
         agg.net += vv === 1 ? 1 : vv === -1 ? -1 : 0;
@@ -100,8 +95,6 @@ export default async function CaptionVoteStatsPage() {
       if (v.profile_id !== null && v.profile_id !== undefined && v.profile_id !== '') {
         uniqueRaters.add(String(v.profile_id));
       }
-
-      if (v.is_from_study === true) studyVotes += 1;
 
       if (v.created_datetime_utc) {
         const d = new Date(v.created_datetime_utc);
@@ -113,7 +106,8 @@ export default async function CaptionVoteStatsPage() {
     }
 
     offset += rows.length;
-    if (rows.length < pageSize) break;
+    // Do not break when rows.length < pageSize: Supabase/PostgREST often caps responses
+    // (e.g. max-rows 1000) while we request more, which would stop after the oldest chunk only.
   }
 
   const { count: totalVotes, error: countError } = await supabase
@@ -181,8 +175,6 @@ export default async function CaptionVoteStatsPage() {
   }
 
   const totalVotesAll = totalVotes ?? offset;
-  const upvoteRate = totalVotesAll ? upvotes / totalVotesAll : 0;
-  const studyRate = totalVotesAll ? studyVotes / totalVotesAll : 0;
 
   return (
     <div className="space-y-10 p-4">
@@ -199,12 +191,6 @@ export default async function CaptionVoteStatsPage() {
         totals={{
           totalVotes: totalVotesAll,
           uniqueRaters: uniqueRaters.size,
-          captionsRated: uniqueCaptions.size,
-          upvotes,
-          downvotes,
-          upvoteRate,
-          studyVotes,
-          studyRate,
           captionScoreRows: captionScoreRows ?? null,
         }}
         dailySeries={dailySeries}

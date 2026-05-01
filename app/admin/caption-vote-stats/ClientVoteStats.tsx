@@ -36,12 +36,6 @@ export default function ClientVoteStats({
   totals: {
     totalVotes: number;
     uniqueRaters: number;
-    captionsRated: number;
-    upvotes: number;
-    downvotes: number;
-    upvoteRate: number;
-    studyVotes: number;
-    studyRate: number;
     captionScoreRows: number | null;
   };
   dailySeries: DailyPoint[];
@@ -100,7 +94,7 @@ export default function ClientVoteStats({
 
   return (
     <div className="space-y-10">
-      <section className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-200">
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
             Votes (all-time)
@@ -116,35 +110,18 @@ export default function ClientVoteStats({
           <p className="text-4xl font-black mt-2 tracking-tighter text-blue-600">
             {totals.uniqueRaters.toLocaleString()}
           </p>
-        </div>
-        <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-200">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-            Captions Rated (all-time)
-          </p>
-          <p className="text-4xl font-black mt-2 tracking-tighter text-orange-600">
-            {totals.captionsRated.toLocaleString()}
-          </p>
-        </div>
-        <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-200">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-            Upvote Rate (all-time)
-          </p>
-          <p className="text-4xl font-black mt-2 tracking-tighter text-emerald-600">
-            {fmtPct(totals.upvoteRate)}
-          </p>
           <p className="mt-2 text-[10px] font-mono text-slate-500">
-            {totals.upvotes.toLocaleString()}↑ / {totals.downvotes.toLocaleString()}↓ · Study:{' '}
-            {fmtPct(totals.studyRate)}
+            Distinct non-null <span className="font-mono">profile_id</span> across all vote rows.
           </p>
         </div>
       </section>
 
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <section className="space-y-8">
         <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 h-[350px] flex flex-col">
           <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-6">
             Votes per day (last 30 days)
           </h4>
-          <div className="flex-1 w-full">
+          <div className="w-full" style={{ height: 280 }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={dailySeries} margin={{ top: 10, right: 20, left: -25, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -155,7 +132,7 @@ export default function ClientVoteStats({
                   tick={{ fontSize: 10, fontWeight: 800, fill: '#cbd5e1' }}
                   padding={{ left: 10, right: 10 }}
                 />
-                <YAxis hide domain={[0, (max: number) => Math.max(max, 5)]} />
+                <YAxis hide domain={[0, 'auto']} />
                 <Tooltip
                   cursor={{ fill: '#f8fafc' }}
                   contentStyle={{
@@ -189,7 +166,7 @@ export default function ClientVoteStats({
         </div>
       </section>
 
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <section>
         <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200">
           <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2">
             Top captions by total_votes (caption_scores)
@@ -229,40 +206,6 @@ export default function ClientVoteStats({
                 </div>
               ))
             )}
-          </div>
-        </div>
-
-        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200">
-          <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2">
-            Quick takeaways
-          </h4>
-          <div className="mt-6 space-y-3 text-[11px] text-slate-700">
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-              <div className="text-[9px] font-black uppercase tracking-[0.25em] text-slate-400 mb-2">
-                Engagement
-              </div>
-              <div className="font-bold">
-                {totals.uniqueRaters.toLocaleString()} raters cast {totals.totalVotes.toLocaleString()} votes across{' '}
-                {totals.captionsRated.toLocaleString()} captions.
-              </div>
-            </div>
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-              <div className="text-[9px] font-black uppercase tracking-[0.25em] text-slate-400 mb-2">
-                Sentiment
-              </div>
-              <div className="font-bold">
-                Upvote rate is {fmtPct(totals.upvoteRate)} ({totals.upvotes.toLocaleString()}↑ /{' '}
-                {totals.downvotes.toLocaleString()}↓).
-              </div>
-            </div>
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-              <div className="text-[9px] font-black uppercase tracking-[0.25em] text-slate-400 mb-2">
-                Study
-              </div>
-              <div className="font-bold">
-                {totals.studyVotes.toLocaleString()} votes are from study ({fmtPct(totals.studyRate)}).
-              </div>
-            </div>
           </div>
         </div>
       </section>
